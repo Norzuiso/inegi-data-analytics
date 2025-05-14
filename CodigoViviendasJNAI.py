@@ -136,10 +136,10 @@ def training_process(poblacion: pd.DataFrame, col_target: str):
 
 def generate_poblacion(data: pd.DataFrame, col_target: str):
     poblacion_positiva = data[data[col_target].apply(target_segment_condition_positive)]
-    poblacion_positiva = poblacion_positiva.sample(n=sample_size, random_state=1)
+    poblacion_positiva = poblacion_positiva.sample(n=sample_size, random_state=1, replace=True)
 
     poblacion_negativa = data[data[col_target].apply(target_segment_condition_negative)]
-    poblacion_negativa = poblacion_negativa.sample(n=sample_size, random_state=1)
+    poblacion_negativa = poblacion_negativa.sample(n=sample_size, random_state=1, replace=True)
 
     poblacion = pd.concat([poblacion_positiva, poblacion_negativa], axis=0)
 
