@@ -1,0 +1,18 @@
+{
+    "file": "CS_ADULTOS.csv",
+    "target_column": "P4_1",
+    "columns": ["P2", "P3", "P5"],
+    "default_save_path": "./resultados_rf",
+    "model_config": {
+        "random_forest_config": {
+            "n_estimators": 100,
+            "max_depth": 8,
+            "min_samples_split": 2,
+            "min_samples_leaf": 1,
+            "max_features": "sqrt",
+            "random_state": 123,
+            "bootstrap": true,
+            "criterion": "entropy"
+        }
+    }
+}

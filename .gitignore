@@ -1,1 +1,4 @@
 sklearn-env/
+results/
+__pycache__/
+*.pyc

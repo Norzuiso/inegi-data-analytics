@@ -1,0 +1,21 @@
+{
+    "file": "CS_ADULTOS.csv",
+    "target_column": "P4_1",
+    "columns": ["P2", "P3", "P5", "P6", "P7"],
+    "default_save_path": "./resultados_logreg",
+    "model_config": {
+        "logistic_regression_config": {
+            "max_iter": 300,
+            "solver": "saga",
+            "penalty": "l1",
+            "C": 0.8,
+            "class_weight": "balanced",
+            "multiclass": "auto",
+            "random_state": 7,
+            "intercept_scaling": 1,
+            "tol": 0.0001,
+            "fit_intercept": true,
+            "warm_start": false
+        }
+    }
+}

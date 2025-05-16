@@ -1,0 +1,9 @@
+{
+    "file": "CS_ADULTOS.csv",
+    "target_column": "P4_1",
+    "columns": ["P2", "P3", "P5", "P6"],
+    "default_save_path": "./results",
+    "report_tittle": "Mi reporte de prueba",
+    "corr_store_file": "features_correlacionadas",
+    "results_path": "correlaciones_heatmap.png"
+}

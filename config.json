@@ -1,0 +1,81 @@
+{
+  "file": "CS_ADULTOS.csv",
+  "target_column": "P4_1",
+  "columns": [],
+  "default_save_path": "./results",
+  "results_path": "correlaciones_heatmap.png",
+  "report_tittle": "Modelo de predicción de hipertensión basado en ENSANUT",
+  "save_fig_path": "figures/",
+  "corr_store_file": "features_correlacionadas",
+  "sample_config": {
+    "sample_size": 3000,
+    "pos_condition": 1,
+    "neg_condition": 2,
+    "test_size": 0.2,
+    "percentage_per_corr": 0.1,
+    "random_state": 42
+  },
+  "graph_config": {
+    "graph_tittle": "Correlaciones",
+    "annot": false,
+    "color_bar": true,
+    "color_map": "coolwarm",
+    "fmt": ".2f",
+    "hide_halfh_graph": true,
+    "figname": "correlaciones_heatmap",
+    "img_format": "svg",
+    "show_plot": false,
+    "size_w": 18,
+    "size_h": 12
+  },
+  "model_config": {
+    "logistic_regression_config": {
+      "max_iter": 1000,
+      "solver": "liblinear",
+      "penalty": "l2",
+      "C": 1.0,
+      "class_weight": "balanced",
+      "multiclass": "auto",
+      "random_state": 42,
+      "intercept_scaling": 1,
+      "tol": 0.0001,
+      "fit_intercept": true,
+      "warm_start": false,
+      "n_jobs": -1
+    },
+    "random_forest_config": {
+      "n_estimators": 100,
+      "max_depth": 10,
+      "min_samples_split": 2,
+      "min_samples_leaf": 1,
+      "max_features": "auto",
+      "random_state": 42,
+      "bootstrap": true,
+      "criterion": "gini",
+      "max_leaf_nodes": null,
+      "min_weight_fraction_leaf": 0.0,
+      "oob_score": false,
+      "verbose": 0,
+      "class_weight": null,
+      "max_samples": null
+    },
+    "svc_config": {
+      "kernel": "linear",
+      "C": 1.0,
+      "gamma": "scale",
+      "degree": 3,
+      "random_state": 42,
+      "coef0": 0.0,
+      "probability": false,
+      "shrinking": true,
+      "tol": 0.001,
+      "class_weight": null,
+      "max_iter": -1,
+      "decision_function_shape": "ovr",
+      "break_ties": false,
+      "cache_size": 200,
+      "verbose": false,
+      "intercept_scaling": 1.0
+    }
+  }
+}

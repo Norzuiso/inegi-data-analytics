@@ -1,0 +1,67 @@
+{
+    "file": "CS_ADULTOS.csv",
+    "target_column": "P4_1",
+    "columns": ["P2", "P3", "P5", "P6", "P7"],
+    "default_save_path": "./results",
+    "results_path": "correlaciones_heatmap.png",
+    "report_tittle": "Reporte completo de prueba",
+    "corr_store_file": "features_correlacionadas",
+    "graph_config": {
+        "figname": "mi_grafica",
+        "img_format": "png",
+        "save_fig_path": "./results/mi_grafica.png"
+    },
+    "sample_config": {
+        "sample_size": 1000,
+        "random_state": 42,
+        "stratify": true
+    },
+    "model_config": {
+        "logistic_regression_config": {
+            "max_iter": 2000,
+            "solver": "liblinear",
+            "penalty": "l2",
+            "C": 0.5,
+            "class_weight": "balanced",
+            "multiclass": "auto",
+            "random_state": 42,
+            "intercept_scaling": 1,
+            "tol": 0.0001,
+            "fit_intercept": true,
+            "warm_start": false
+        },
+        "random_forest_config": {
+            "n_estimators": 200,
+            "max_depth": 15,
+            "min_samples_split": 4,
+            "min_samples_leaf": 2,
+            "max_features": "sqrt",
+            "random_state": 42,
+            "bootstrap": true,
+            "criterion": "gini",
+            "max_leaf_nodes": null,
+            "min_weight_fraction_leaf": 0.0,
+            "oob_score": false,
+            "verbose": 0,
+            "class_weight": null,
+            "max_samples": null
+        },
+        "svc_config": {
+            "kernel": "rbf",
+            "C": 1.0,
+            "gamma": "scale",
+            "degree": 3,
+            "random_state": 42,
+            "coef0": 0.0,
+            "probability": false,
+            "shrinking": true,
+            "tol": 0.001,
+            "class_weight": null,
+            "max_iter": -1,
+            "decision_function_shape": "ovr",
+            "break_ties": false,
+            "cache_size": 200,
+            "verbose": false
+        }
+    }
+}
