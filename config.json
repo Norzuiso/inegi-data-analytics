@@ -13,7 +13,9 @@
     "neg_condition": 2,
     "test_size": 0.2,
     "percentage_per_corr": 0.1,
-    "random_state": 42
+    "random_state": 42,
+    "CorrelationMethod": "pearson", 
+    "sample_file": "sampled_data.csv"
   },
   "graph_config": {
     "graph_tittle": "Correlaciones",

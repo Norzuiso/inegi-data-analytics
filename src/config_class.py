@@ -9,6 +9,8 @@ class Sample_config:
     test_size: float = 0.2
     percentage_per_corr: float = 0.1
     random_state: int = 42
+    sample_file: str = "sample.csv"
+    CorrelationMethod: str = "pearson"
 
 @dataclass
 class Graph_config:

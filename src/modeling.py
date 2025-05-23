@@ -231,6 +231,8 @@ def train(sample: pd.DataFrame,
         raise ValueError("No features found for training.")
     X = sample[features]
     Y = sample[target]
+    if target in X.columns:
+        raise ValueError("Target column was found in X — this will invalidate your training.")
 
     # Split de los datos
     X_train, X_test, Y_train, Y_test = train_test_split(

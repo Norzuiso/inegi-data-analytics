@@ -42,6 +42,8 @@ def parameters():
     default_save_path = generate_folders(default_save_path)
     graph_config.save_fig_path = f"{default_save_path}{graph_config.figname}.{graph_config.img_format}"
 
+    config.sample_config.sample_file = f"{default_save_path}{config.sample_config.sample_file}.csv"
+
     config.corr_store_file = f"{default_save_path}{config.corr_store_file}.csv"
     config.results_path = f"{default_save_path}/"
 
