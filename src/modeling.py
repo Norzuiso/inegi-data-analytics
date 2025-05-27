@@ -1,8 +1,10 @@
 from generate_pdf_results import save_results_to_pdf
-from config_class import Model_config, Config, Logistic_regression_config, Random_forest_config, SVC_config
+from config_class import ModelConfig, Config, Logistic_regression_config, Random_forest_config, SVC_config
 
 import joblib
 import pandas as pd
+import csv
+
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score
@@ -10,32 +12,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
-def raise_error_logistic_regression_params(params: Logistic_regression_config):
-    if params is None:
-        return None
-    if params.solver not in ['liblinear', 'newton-cg', 'lbfgs', 'sag', 'saga']:
-        raise ValueError("Solver must be one of ['liblinear', 'newton-cg', 'lbfgs', 'sag', 'saga']")
-    if params.solver == 'liblinear' and params.penalty not in ['l1', 'l2']:
-        raise ValueError("Penalty must be one of ['l1', 'l2'] when solver is 'liblinear'")
-    if params.solver == 'saga' and params.penalty not in ['l1', 'l2', 'elasticnet', 'none']:
-        raise ValueError("Penalty must be one of ['l1', 'l2', 'elasticnet', 'none'] when solver is 'saga'")
-    if params.solver in ['lbfgs', 'newton-cg', 'sag'] and params.penalty not in ['l2', 'none']:
-        raise ValueError("Penalty must be one of ['l2', 'none'] when solver is 'lbfgs', 'newton-cg' or 'sag'")
-    if params.solver == 'liblinear' and params.intercept_scaling != 1:
-        raise ValueError("Intercept scaling must be 1 when solver is 'liblinear'")
-    if params.class_weight not in [None, 'balanced']:
-        raise ValueError("Class weight must be None or 'balanced'")
-    if params.C <= 0:
-        raise ValueError("C must be greater than 0")
-    if params.tol <= 0:
-        raise ValueError("Tolerance must be greater than 0")
-    if params.fit_intercept not in [True, False]:
-        raise ValueError("Fit intercept must be True or False")
-    if params.warm_start not in [True, False]:
-        raise ValueError("Warm start must be True or False")
-
 def train_logistic_regression(X_train, Y_train, X_test, Y_test, params: Logistic_regression_config, results_path: str):
-    raise_error_logistic_regression_params(params)
+    print(f"Training Logistic Regression with parameters: {params}")
 
     modelo = LogisticRegression(
         max_iter=params.max_iter,
@@ -52,6 +30,13 @@ def train_logistic_regression(X_train, Y_train, X_test, Y_test, params: Logistic
 
     modelo.fit(X_train, Y_train)
     Y_pred = modelo.predict(X_test)
+    coef = modelo.coef_  # Reshape to 2D array for consistency
+    modelo.intercept_ = modelo.intercept_.reshape(1, -1)  # Reshape to 2D array for consistency
+    # Save the array to a CSV file
+    with open(f"{results_path}logistic_regression_coefficients.csv", 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerows(coef)
+
     acc = accuracy_score(Y_test, Y_pred)
     f1 = f1_score(Y_test, Y_pred)
     cl_report = classification_report(Y_test, Y_pred)
@@ -65,49 +50,14 @@ def train_logistic_regression(X_train, Y_train, X_test, Y_test, params: Logistic
         "Classification Report": cl_report,
         "Confusion Matrix": conf_matrx
     }
+    # Guardar los coeficientes del modelo
+    
+    store_coefficients(modelo, X_train, f"{results_path}logistic_regression_coefficients.csv")
     return results
-
-def raise_error_random_forest_params(params: Random_forest_config):
-    if params.criterion not in ["gini", "entropy", "log_loss"]:
-        raise ValueError("Criterion must be 'gini', 'entropy' or 'log_loss'")
-    valid_max_features = ["sqrt", "log2"]
-    if not (
-        params.max_features in valid_max_features
-        or isinstance(params.max_features, (float, int))
-        or params.max_features is None
-    ):
-        raise ValueError("Max features must be 'sqrt', 'log2', a float, an int, or None")
-    if params.min_samples_split < 2:
-        raise ValueError("Min samples split must be at least 2")
-    if params.min_samples_leaf < 1:
-        raise ValueError("Min samples leaf must be at least 1")
-    if not (0 <= params.min_weight_fraction_leaf <= 0.9):
-        raise ValueError("Min weight fraction leaf must be between 0 and 0.9")
-    if params.max_depth is not None and params.max_depth < 1:
-        raise ValueError("Max depth must be at least 1 or None")
-    if params.max_leaf_nodes is not None and params.max_leaf_nodes < 1:
-        raise ValueError("Max leaf nodes must be at least 1 or None")
-    if params.max_samples is not None and params.max_samples < 1:
-        raise ValueError("Max samples must be at least 1 or None")
-    if params.oob_score not in [True, False]:
-        raise ValueError("OOB score must be True or False")
-    if params.bootstrap not in [True, False]:
-        raise ValueError("Bootstrap must be True or False")
-    if params.oob_score and not params.bootstrap:
-        raise ValueError("Bootstrap must be True if OOB score is True")
-    if params.n_estimators < 1:
-        raise ValueError("Number of estimators must be at least 1")
-    if params.random_state is not None and params.random_state < 0:
-        raise ValueError("Random state must be a non-negative integer or None")
-    if params.verbose < 0:
-        raise ValueError("Verbose must be a non-negative integer")
-    if params.class_weight not in [None, "balanced"]:
-        raise ValueError("Class weight must be None or 'balanced'")
 
 
 def train_random_forest(X_train, Y_train, X_test, Y_test, params: Random_forest_config, results_path: str):
-    raise_error_random_forest_params(params)
-
+    print(f"Training Random Forest with parameters: {params}")
     modelo = RandomForestClassifier(
         n_estimators=params.n_estimators,
         criterion=params.criterion,
@@ -141,28 +91,9 @@ def train_random_forest(X_train, Y_train, X_test, Y_test, params: Random_forest_
         "Confusion Matrix": conf_matrx
     }
     return results
-def raise_error_svc_params(params: SVC_config):
-    if params.kernel not in ["linear", "poly", "rbf", "sigmoid", "precomputed"]:
-        raise ValueError("Kernel must be one of 'linear', 'poly', 'rbf', 'sigmoid', 'precomputed'")
-    if params.C <= 0:
-        raise ValueError("C must be greater than 0")
-    if params.gamma not in ["scale", "auto"] and not isinstance(params.gamma, (float, int)):
-        raise ValueError("Gamma must be 'scale', 'auto', float or int")
-    if params.degree < 1:
-        raise ValueError("Degree must be at least 1")
-    if params.tol <= 0:
-        raise ValueError("Tolerance must be greater than 0")
-    if params.class_weight not in [None, "balanced"]:
-        raise ValueError("Class weight must be None or 'balanced'")
-    if params.max_iter != -1 and params.max_iter < 1:
-        raise ValueError("Max iter must be -1 (no limit) or a positive integer")
-    if params.decision_function_shape not in ["ovr", "ovo"]:
-        raise ValueError("Decision function shape must be 'ovr' or 'ovo'")
-    if params.cache_size < 1:
-        raise ValueError("Cache size must be at least 1")
 
 def train_svc(X_train, Y_train, X_test, Y_test, params: SVC_config, results_path: str):
-    raise_error_svc_params(params)
+    print(f"Training SVC with parameters: {params}")
     svc_kwargs = dict(
         kernel=params.kernel,
         C=params.C,
@@ -202,7 +133,7 @@ def train_svc(X_train, Y_train, X_test, Y_test, params: SVC_config, results_path
 
 def train(sample: pd.DataFrame,
           correlated_features: pd.Series,
-          model_config: Model_config,
+          model_config: ModelConfig,
           config: Config,
           columns: list = [],
           target: str = "target",
@@ -261,6 +192,9 @@ def train(sample: pd.DataFrame,
         try:
             random_forest = train_random_forest(X_train, Y_train, X_test, Y_test, random_forest_params, config.results_path)
             results.append(random_forest)
+            coeficientes = pd.Series(random_forest.feature_importances_, index=X_train.columns)
+            print(coeficientes)
+            coeficientes.to_csv(f"{config.results_path}random_forest_feature_importances.csv")
         except Exception as e:
             results.append({"Model": "RandomForest", "Error": str(e)})
     else:
@@ -269,6 +203,9 @@ def train(sample: pd.DataFrame,
         try:
             svc = train_svc(X_train, Y_train, X_test, Y_test, svc_params, config.results_path)
             results.append(svc)
+            coeficientes = pd.Series(svc.feature_importances_, index=X_train.columns)
+            print(coeficientes)
+            coeficientes.to_csv(f"{config.results_path}svc_feature_importances.csv")
         except Exception as e:
             results.append({"Model": "SVC", "Error": str(e)})
     else:

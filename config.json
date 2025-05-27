@@ -1,7 +1,7 @@
 {
   "file": "CS_ADULTOS.csv",
   "target_column": "P4_1",
-  "columns": ["EDAD"],
+  "columns": [],
   "default_save_path": "./results",
   "results_path": "correlaciones_heatmap.png",
   "report_tittle": "Modelo de predicción de hipertensión basado en ENSANUT",

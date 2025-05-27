@@ -2,68 +2,84 @@ import json
 import os
 import datetime
 import argparse
+import config_class as cs
+import logging
 
-from config_class import Config, Graph_config, Sample_config, Model_config, Logistic_regression_config, Random_forest_config, SVC_config
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def parameters():
-    config = Config()
+    config = cs.AnalysisConfig()
     args = parse_args()
-    config.file = args.file if args.file else config.file
-    config.target_column = args.target if args.target else config.target_column
-    config.columns = args.columns if args.columns else config.columns
-
+    # check args for config file
     if not args.config:
-        raise ValueError("No se ha proporcionado un archivo de configuración. Por favor, proporciona el archivo de configuración JSON.")
+        args.config = "config.json"
+        logger.warning("No configuration file provided. Please provide a JSON configuration file. Using default configuration.")
+    if not os.path.exists(args.config):
+        logger.warning("Configuration file does not exist. Using default configuration.")
 
     config_dict = load_config(args.config)
-    for key, value in config_dict.items():
-        if hasattr(config, key):
-            if key == "graph_config" and isinstance(value, dict):
-                setattr(config, key, Graph_config(**value))
-            elif key == "sample_config" and isinstance(value, dict):
-                setattr(config, key, Sample_config(**value))
-            elif key == "model_config" and isinstance(value, dict):
-                # Aquí está la clave:
-                if "logistic_regression_config" in value:
-                    value["logistic_regression_config"] = Logistic_regression_config(**value["logistic_regression_config"])
-                if "random_forest_config" in value:
-                    value["random_forest_config"] = Random_forest_config(**value["random_forest_config"])
-                if "svc_config" in value:
-                    value["svc_config"] = SVC_config(**value["svc_config"])
-                setattr(config, key, Model_config(**value))
-            else:
-                setattr(config, key, value)
-
+    try:
+        config = cs.AnalysisConfig(**config_dict)
+    except Exception as e:
+        logger.error(f"Error loading configuration: {e}")
+        logger.error("Please check the configuration file format and content.")
+        raise
+    processing_mode =config.general.processing_mode 
+    if processing_mode == "shap" and config.preprocessing[0].input_file is None:
+        logger.error("Processing mode is set to 'shap', but no input file is provided in the preprocessing configuration.")
+        raise ValueError("Input file must be specified when processing mode is 'shap'.")
+        
+    if config.general.verbose:
+        logger.info("Verbose mode is enabled. Detailed logs will be printed.")
+        logger.info(f"Using configuration file: {args.config}")
+        logger.info(f"Configuration version: {config.config_version}")
+        logger.info(f"Configuration: {config}")
     # Generar carpetas para guardar resultados
-    graph_config = config.graph_config
-
+    if not config.general.results_directory:
+        config.general.results_directory = "results/"
+    config.general.results_directory = add_trailing_if_missing(config.general.results_directory)
     # Paths
-    default_save_path = config.default_save_path
-    default_save_path = generate_folders(default_save_path)
-    graph_config.save_fig_path = f"{default_save_path}{graph_config.figname}.{graph_config.img_format}"
+    default_save_path = create_timestamped_folders(config.general.results_directory)
 
-    config.sample_config.sample_file = f"{default_save_path}{config.sample_config.sample_file}.csv"
+    config.models.models_directory = add_trailing_if_missing(config.models.models_directory)
+    config.models.models_directory = f"{default_save_path}{config.models.models_directory}"
+    create_folder(config.models.models_directory)
 
-    config.corr_store_file = f"{default_save_path}{config.corr_store_file}.csv"
-    config.results_path = f"{default_save_path}/"
+    config.visualization_config.figures_directory = add_trailing_if_missing(config.visualization_config.figures_directory)
+    config.visualization_config.figures_directory = f"{default_save_path}{config.visualization_config.figures_directory}"
+    create_folder(config.visualization_config.figures_directory)
+
+    config.sample_config.output_sample_file = add_trailing_if_missing(config.sample_config.output_sample_file, char=".csv")
+    config.sample_config.output_sample_file = f"{default_save_path}{config.sample_config.output_sample_file}"
+
+    config.general.correlation_results_file = f"{default_save_path}{config.general.correlation_results_file}.csv"
+    config.general.results_directory = add_trailing_if_missing(default_save_path)
+    config.general.report_title = f"{config.general.report_title} - {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
 
     return config
+
+def create_folder(directory_path: str):
+    if not os.path.exists(directory_path):
+        os.makedirs(directory_path)
+        logger.info(f"Created figures directory: {directory_path}")
+
+def add_trailing_if_missing(default_save_path, char: str = "/"):
+    if not default_save_path.endswith(char):
+        default_save_path += char
+    return default_save_path
+
 def parse_args():
-    parser = argparse.ArgumentParser(description="Modelo de predicción de hipertensión basado en ENSANUT.")
-    parser.add_argument("--file", type=str, help="Ruta del archivo CSV.")
-    parser.add_argument("--target", type=str, help="Columna objetivo (target).")
-    parser.add_argument("--columns", nargs="+", help="Lista de columnas específicas a usar.")
+    parser = argparse.ArgumentParser(description="Parámetros de configuración del modelo")
     parser.add_argument("--config", type=str, default="config.json", help="Archivo de configuración JSON")
     return parser.parse_args()
 
-def generate_folders(default_save_path: str):
-    timestamp_time = f"{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}/"
+def create_timestamped_folders(default_save_path: str):
+    timestamp_time = f"{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}/"
     default_save_path = f"{default_save_path}"
-    if not os.path.exists(default_save_path):
-        os.mkdir(default_save_path)
+    create_folder(default_save_path)
     default_save_path = f"{default_save_path}/{timestamp_time}"
-    if not os.path.exists(default_save_path):
-        os.mkdir(default_save_path)
+    create_folder(default_save_path)
     default_save_path = f"{default_save_path}/"
     return default_save_path
 

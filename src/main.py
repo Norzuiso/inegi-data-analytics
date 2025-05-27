@@ -1,17 +1,49 @@
 import logging
+import pandas as pd
+
+from typing import List
 
 from config import parameters
-from config_class import Config
-from data_utils import generate_sample
-from data_utils import read_file
+from config_class import AnalysisConfig, GeneralConfig, PreprocessingConfig, SampleConfig, VisualizationConfig,ModelsConfig
+from data_utils import generate_sample, read_file, merge_files, file_processing
 from modeling import train
 from visualization import explore_corr
+
+
 
 # Configuración del logger
 log = logging.getLogger(__name__)
 
+
 def main():
-    config: Config = parameters()
+    config: AnalysisConfig = parameters()
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    log.info("Starting the analysis with the provided configuration.")
+    log.info(f"Configuration: {config}")
+    
+    general: GeneralConfig = config.general
+    preprocessing: List[PreprocessingConfig] = config.preprocessing
+    sample_config: SampleConfig = config.sample_config
+    visualization: VisualizationConfig = config.visualization_config
+    models: ModelsConfig = config.models
+    
+    processing_mode = general.processing_mode
+    data = []    
+    if processing_mode == "single":
+        log.info("Only one preprocessing configuration provided. Using it for file processing.")
+        data.append(file_processing(preprocessing[0].input_file))
+
+    if processing_mode == "merge":
+        log.info("Processing mode is set to 'merge'. Merging files.")
+        data = [file_processing(prep.input_file) for prep in preprocessing]
+        data = merge_files(data, general.merge_columns)
+
+    target = general.target_column
+    if not target:
+        raise ValueError("Target column must be specified in the configuration.")
+
+
+    
     target = config.target_column
     columns = config.columns
     file = config.file
@@ -38,7 +70,7 @@ def main():
 
     explore_corr(sample,
                  correlated_features,
-                 cor_target,
+                 target,
                  graph_config)
 
     train(sample,

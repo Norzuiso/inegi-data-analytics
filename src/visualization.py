@@ -3,17 +3,19 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from config_class import Graph_config
+from config_class import GraphConfig
 
 
 def explore_corr(sample: pd.DataFrame, 
                  correlated_features: pd.Series, 
-                 target_column: pd.Series,
-                 graph_config: Graph_config,
+                 target_column: str,
+                 graph_config: GraphConfig,
                  ):
     selected_cols = correlated_features.index.tolist()
     corr_matrix = sample[selected_cols].corr()
-    corr_matrix = corr_matrix[correlated_features.index.tolist() + target_column].corr()
+    if target_column in corr_matrix.columns:
+        corr_matrix = corr_matrix.drop(target_column, axis=1)
+    corr_matrix = corr_matrix[correlated_features.index.tolist()].corr()
     mask = None
     if graph_config.hide_halfh_graph:
         mask = np.triu(np.ones_like(corr_matrix, dtype=bool))

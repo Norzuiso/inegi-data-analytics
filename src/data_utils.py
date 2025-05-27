@@ -1,7 +1,11 @@
 import pandas as pd
+import os
+import numexpr as ne
+import numpy as np
+from typing import List
+from functools import reduce
 
-from config_class import Sample_config
-
+from config_class import SampleConfig, PreprocessingConfig, Column
 
 def get_groups(data: pd.DataFrame, col, pos_condition, neg_condition):
     data = data[data[col].isin([pos_condition, neg_condition])]
@@ -12,7 +16,7 @@ def get_groups(data: pd.DataFrame, col, pos_condition, neg_condition):
 
 def generate_sample(data: pd.DataFrame,
                     target_column: str,
-                    sample_config: Sample_config):
+                    sample_config: SampleConfig):
 
     pos_group, neg_group = get_groups(data,
                                        target_column,
@@ -27,9 +31,80 @@ def generate_sample(data: pd.DataFrame,
     return pd.concat([pos_group, neg_group], axis=0).reset_index(drop=True)
 
 
+def merge_files(list_of_dataframes: List[pd.DataFrame], merge_columns: List[str]):
+    for df in list_of_dataframes:
+        validate_str_columns(df, merge_columns)
+    merged_df = reduce(lambda left, right: left.merge(right, on=merge_columns, how="inner"), list_of_dataframes)
+    return merged_df
+
+def validate_str_columns(data: pd.DataFrame, columns: list[str]):
+    available_cols = data.columns.tolist()
+    missing_cols = [col for col in columns if col not in available_cols]
+    if missing_cols:
+        raise ValueError(f"Missing columns in the data: {', '.join(missing_cols)}")
+    
+def validate_columns(data: pd.DataFrame, columns: list[Column]):
+    expected_cols = [col.column_name for col in columns]
+    available_cols = data.columns.tolist()
+    missing_cols = [col for col in expected_cols if col not in available_cols]
+    if missing_cols: # Si en segments existen columnas que no existan en archivo, arroja error :p
+        raise ValueError(f"Missing columns in the data: {', '.join(missing_cols)}")
+
+def clean_data_columns(data: pd.DataFrame, columns: list[Column]):
+    return data[[col.column_name for col in columns if col.column_name in data.columns]].copy()
+
+def generate_condition_str(condition: str):
+    if "(" in condition and ")" in condition:
+        close = condition.split(")")
+        for cond_split in close:
+            cond_split 
+    return True
+def should_use_numexpr(column: Column):
+    if column.value_type == "str":
+        return False
+    if "'" in column.condition or '"' in column.condition:
+        return False
+    return True
+
+def binary_replace(data: pd.DataFrame, columns: list[Column]):
+    for col in columns:
+        name = col.column_name
+        condition = col.condition
+        val_true = col.true_value
+        val_false = col.false_value
+        if should_use_numexpr(col):
+            evaluated = ne.evaluate(condition, local_dict={"x": data[name].to_numpy()})
+            data[name] = np.where(evaluated, val_true, val_false)
+        else:
+            serie_evaluada = data[name].apply(lambda x: eval(condition, {}, {"x": x}))
+            data[name] = np.where(serie_evaluada, val_true, val_false)
+    return data
+
+def file_processing(preprocessing: PreprocessingConfig):
+    file_path = preprocessing.input_file
+    columns = preprocessing.columns
+    data = read_file(file_path)
+    validate_columns(data, columns)
+    data = clean_data_columns(data, columns)
+    data = binary_replace(data, columns)
+    data = rename_columns(data, columns, file_path)
+    return data
+
+def rename_columns(data: pd.DataFrame, columns: list[Column], file_path: str):
+    base_file_name = get_base_file_name(file_path)
+    rename_map = {
+        col.column_name : f"{base_file_name}_{col.column_name}"
+        for col in columns if col.column_name in data.columns
+    }
+    data.rename(columns=rename_map, inplace=True)
+    return data
+
+def get_base_file_name(file):
+    base_file_name = os.path.splitext(os.path.basename(file))[0]
+    return base_file_name
+
 def read_file(file_name: str):
     data = pd.read_csv(file_name)
     data = pd.DataFrame(data)
     data = data.fillna(0)
-    data = data.astype(int)
     return data
