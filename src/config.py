@@ -33,11 +33,11 @@ def parameters():
     if config.general.verbose:
         logger.info("Verbose mode is enabled. Detailed logs will be printed.")
         logger.info(f"Using configuration file: {args.config}")
-        logger.info(f"Configuration version: {config.config_version}")
+        logger.info(f"Configuration version: {config.general.config_version}")
         logger.info(f"Configuration: {config}")
     # Generar carpetas para guardar resultados
     if not config.general.results_directory:
-        config.general.results_directory = "results/"
+        config.general.results_directory = "results"
     config.general.results_directory = add_trailing_if_missing(config.general.results_directory)
     # Paths
     default_save_path = create_timestamped_folders(config.general.results_directory)

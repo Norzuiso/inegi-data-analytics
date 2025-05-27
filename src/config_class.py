@@ -1,32 +1,35 @@
 from typing import List, Optional, Literal, Union, Annotated
 from pydantic import BaseModel, Field, ValidationError, conint, confloat, model_validator
-    
+import logging
+
+# Configuración del logger
+log = logging.getLogger(__name__)
+
 # ==== PREPROCESAMIENTO ====
 class Column(BaseModel):
     column_name: str = ""
-    condition: str = "x!=1 && x > 5"
-    true_value: str = "1"
-    false_value: str = "0"
+    condition: Optional[str] = ""
+    true_value: Optional[str] = "1"
+    false_value: Optional[str] = "0"
     value_type: Literal["int", "str", "float"] = "int"
 
 class PreprocessingConfig(BaseModel):
     input_file: str = "data.csv"
-    target_column_merge: Optional[Column] = None
-    feature_conditions: List[Column] = Field(default_factory=List)
+    target_column: Optional[Column] = None
+    columns: List[Column] = Field(default_factory=list)
 
     @model_validator(mode='before')
     def validate_conditions(cls, values):
         if not values.get('input_file'):
             raise ValueError("input_file must be specified")
-        if not values.get('feature_conditions'):
-            raise Warning("feature_conditions is empty, preprocessing all columns without conditions")
+        if not values.get('columns'):
+            log.warning("columns is empty, preprocessing all columns without conditions")
         return values
 
 # ==== DATOS Y MUESTREO ====
 class SampleConfig(BaseModel):
-    sample_size: int = 3000
-    positive_class: int = 1
-    negative_class: int = 2
+    sample_size: int = 1000
+    discriminator: int = 1
     test_size: float = 0.2
     correlation_threshold: float = 0.1 # percentage_per_corr
     random_seed: int = 42
@@ -109,7 +112,7 @@ class SVCConfig(BaseModel):
     coef0: Annotated[float, Field(strict=False, ge=0)] = 0.0
     decision_function_shape: Literal["ovr", "ovo"] = "ovr"
     degree: Annotated[int, Field(strict=False, ge=1)] = 3
-    gamma: Annotated[Union[float, int, Literal["scale", "auto"]], Field(strict=False)] = "scale"
+    gamma: Annotated[Union[float, int, Literal["scale", "auto"]], Field()] = "scale"
     kernel: Literal["linear", "poly", "rbf", "sigmoid", "precomputed"] = "linear"
     max_iter: Annotated[int, Field(strict=False, ge=-1)] = -1
     probability: bool = False
@@ -186,9 +189,13 @@ class ModelsConfig(BaseModel):
     ridge: RidgeConfig = Field(default_factory=RidgeConfig)
 
 # ==== CONFIGURACIÓN DEL SISTEMA ====
-class GeneralConfig(BaseModel):
+class MergeConfig(BaseModel):
     target_column: Optional[Column] = None
+    file_for_target: str = "data.csv"
     merge_columns: Optional[List[str]] = None
+
+class GeneralConfig(BaseModel):
+    merge_config: MergeConfig = Field(default_factory=MergeConfig)
     results_directory: str = "./results"
     correlation_results_file: str = "correlated_features.csv"
     report_title: str = "Modelo de predicción de hipertensión basado en ENSANUT"
@@ -214,7 +221,7 @@ class GeneralConfig(BaseModel):
 
 class AnalysisConfig(BaseModel):
     general: GeneralConfig = Field(default_factory=GeneralConfig)
-    preprocessing: List[PreprocessingConfig] = Field(default_factory=List)
+    preprocessing: List[PreprocessingConfig] = Field(default_factory=list)
 
     sample_config: SampleConfig = Field(default_factory=SampleConfig)
     visualization_config: VisualizationConfig = Field(default_factory=VisualizationConfig)

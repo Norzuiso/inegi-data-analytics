@@ -5,12 +5,13 @@ import numpy as np
 from typing import List
 from functools import reduce
 
-from config_class import SampleConfig, PreprocessingConfig, Column
+from config_class import SampleConfig, PreprocessingConfig, Column, MergeConfig
 
-def get_groups(data: pd.DataFrame, col, pos_condition, neg_condition):
-    data = data[data[col].isin([pos_condition, neg_condition])]
-    pos_group = data[data[col] == pos_condition]
-    neg_group = data[data[col] == neg_condition]
+def get_groups(data: pd.DataFrame, col, discriminator):
+    data[col] = data[col].astype(type(discriminator))
+
+    pos_group = data[data[col] == discriminator]
+    neg_group = data[data[col] != discriminator]
     return pos_group, neg_group
 
 
@@ -20,22 +21,37 @@ def generate_sample(data: pd.DataFrame,
 
     pos_group, neg_group = get_groups(data,
                                        target_column,
-                                       sample_config.pos_condition,
-                                       sample_config.neg_condition)
+                                       sample_config.discriminator)
     if len(pos_group) < sample_config.sample_size or len(neg_group) < sample_config.sample_size:
-        raise ValueError("No hay suficientes datos en alguno de los grupos")
+        raise ValueError(f"Not enough data to sample {sample_config.sample_size} from both groups. "
+                         f"Positive group size: {len(pos_group)}, Negative group size: {len(neg_group)}")
 
-    pos_group = pos_group.sample(n=sample_config.sample_size, random_state=sample_config.random_state)
-    neg_group = neg_group.sample(n=sample_config.sample_size, random_state=sample_config.random_state)
+    pos_group = pos_group.sample(n=sample_config.sample_size, random_state=sample_config.random_seed)
+    neg_group = neg_group.sample(n=sample_config.sample_size, random_state=sample_config.random_seed)
 
     return pd.concat([pos_group, neg_group], axis=0).reset_index(drop=True)
 
 
-def merge_files(list_of_dataframes: List[pd.DataFrame], merge_columns: List[str]):
+def merge_files(preprocessing: List[PreprocessingConfig], merge_config: MergeConfig):
+    merge_columns = merge_config.merge_columns
+    list_of_dataframes = []
+    for prep in preprocessing:
+        data = file_processing(prep.input_file)
+        data, prep.columns = rename_columns(data, prep.columns)
+        list_of_dataframes.append(data)
+
+    base_file_name = get_base_file_name(merge_config.file_for_target)
+    merge_config.target_column.column_name = f"{base_file_name}_{merge_config.target_column.column_name}"
+    
     for df in list_of_dataframes:
         validate_str_columns(df, merge_columns)
     merged_df = reduce(lambda left, right: left.merge(right, on=merge_columns, how="inner"), list_of_dataframes)
-    return merged_df
+    if merge_config.target_column.column_name not in merged_df.columns:
+        raise ValueError(f"Target column '{merge_config.target_column.column_name}' not found in merged data.")
+    merge_prepro = PreprocessingConfig(input_file="Files merged", feature_conditions=[], target_column=merge_config.target_column)
+    for prep in preprocessing:
+        merge_prepro.columns.extend(prep.columns)
+    return merged_df, merge_prepro
 
 def validate_str_columns(data: pd.DataFrame, columns: list[str]):
     available_cols = data.columns.tolist()
@@ -72,6 +88,8 @@ def binary_replace(data: pd.DataFrame, columns: list[Column]):
         condition = col.condition
         val_true = col.true_value
         val_false = col.false_value
+        if condition is None or condition == "":
+            continue
         if should_use_numexpr(col):
             evaluated = ne.evaluate(condition, local_dict={"x": data[name].to_numpy()})
             data[name] = np.where(evaluated, val_true, val_false)
@@ -83,11 +101,15 @@ def binary_replace(data: pd.DataFrame, columns: list[Column]):
 def file_processing(preprocessing: PreprocessingConfig):
     file_path = preprocessing.input_file
     columns = preprocessing.columns
+    columns.append(preprocessing.target_column)
     data = read_file(file_path)
+    if len(columns) == 0:
+        columns_name = data.columns.to_list()
+        for col in columns_name:
+            columns.append(Column(column_name=col))
     validate_columns(data, columns)
     data = clean_data_columns(data, columns)
     data = binary_replace(data, columns)
-    data = rename_columns(data, columns, file_path)
     return data
 
 def rename_columns(data: pd.DataFrame, columns: list[Column], file_path: str):
@@ -97,7 +119,7 @@ def rename_columns(data: pd.DataFrame, columns: list[Column], file_path: str):
         for col in columns if col.column_name in data.columns
     }
     data.rename(columns=rename_map, inplace=True)
-    return data
+    return data, columns
 
 def get_base_file_name(file):
     base_file_name = os.path.splitext(os.path.basename(file))[0]

@@ -1,81 +1,70 @@
 {
-  "file": "CS_ADULTOS.csv",
-  "target_column": "P4_1",
-  "columns": [],
-  "default_save_path": "./results",
-  "results_path": "correlaciones_heatmap.png",
-  "report_tittle": "Modelo de predicción de hipertensión basado en ENSANUT",
-  "save_fig_path": "figures/",
-  "corr_store_file": "features_correlacionadas",
+  "general": {
+    "results_directory": "./results",
+    "correlation_results_file": "correlated_features.csv",
+    "report_title": "Modelo de predicción de hipertensión basado en ENSANUT",
+    "processing_mode": "single",
+    "verbose": true,
+    "config_version": "1.0.0"
+  },
+  "preprocessing": [
+    {
+      "input_file": "CS_ADULTOS.csv",
+      
+    "target_column": {
+      "column_name": "P4_1",
+      "condition": "x == 1",
+      "true_value": "1",
+      "false_value": "0",
+      "value_type": "int"
+    },
+      "columns": [
+        {
+          "column_name": "EDAD",
+          "condition": "x > 60",
+          "true_value": "1",
+          "false_value": "0",
+          "value_type": "int"
+        },
+        {
+          "column_name": "P3_11",
+          "condition": "x == 1",
+          "true_value": "1",
+          "false_value": "0",
+          "value_type": "int"
+        }
+      ]
+    }
+  ],
   "sample_config": {
     "sample_size": 3000,
-    "pos_condition": 1,
-    "neg_condition": 2,
+    "discriminator": 1,
     "test_size": 0.2,
-    "percentage_per_corr": 0.1,
-    "random_state": 42,
-    "CorrelationMethod": "pearson", 
-    "sample_file": "sampled_data.csv"
+    "correlation_threshold": 0.1,
+    "random_seed": 42,
+    "output_sample_file": "sample.csv",
+    "correlation_method": "pearson"
   },
-  "graph_config": {
-    "graph_tittle": "Correlaciones",
-    "annot": false,
-    "color_bar": true,
+  "visualization_config": {
+    "title": "Correlaciones",
+    "show_annotations": false,
+    "show_colorbar": true,
     "color_map": "coolwarm",
-    "fmt": ".2f",
-    "hide_halfh_graph": true,
-    "figname": "correlaciones_heatmap",
-    "img_format": "svg",
-    "show_plot": false,
-    "size_w": 18,
-    "size_h": 12
+    "number_format": ".2f",
+    "hide_upper_half": true,
+    "figure_name": "default_graph",
+    "image_format": "svg",
+    "display_plot": false,
+    "width": 18,
+    "height": 12,
+    "figures_directory": "figures"
   },
-  "model_config": {
-    "logistic_regression_config": {
-      "max_iter": 1000,
-      "solver": "liblinear",
-      "penalty": "l2",
-      "C": 1.0,
-      "class_weight": "balanced",
-      "multiclass": "auto",
-      "random_state": 42,
-      "intercept_scaling": 1,
-      "tol": 0.0001,
-      "fit_intercept": true,
-      "warm_start": false
-    },
-    "random_forest_config": {
-      "n_estimators": 100,
-      "max_depth": 10,
-      "min_samples_split": 2,
-      "min_samples_leaf": 1,
-      "max_features": "sqrt",
-      "random_state": 42,
-      "bootstrap": true,
-      "criterion": "gini",
-      "max_leaf_nodes": null,
-      "min_weight_fraction_leaf": 0.0,
-      "oob_score": false,
-      "verbose": 0,
-      "class_weight": null,
-      "max_samples": null
-    },
-    "svc_config": {
-      "kernel": "linear",
-      "C": 1.0,
-      "gamma": "scale",
-      "degree": 3,
-      "random_state": 42,
-      "coef0": 0.0,
-      "probability": false,
-      "shrinking": true,
-      "tol": 0.001,
-      "class_weight": null,
-      "max_iter": -1,
-      "decision_function_shape": "ovr",
-      "break_ties": false,
-      "cache_size": 200,
-      "verbose": false
-    }
+  "models": {
+    "models_directory": "models",
+    "logistic_regression": {},
+    "random_forest": {},
+    "svc": {},
+    "xgboost": {},
+    "ridge": {}
   }
 }
