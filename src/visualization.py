@@ -8,12 +8,12 @@ from config_class import Graph_config
 
 def explore_corr(sample: pd.DataFrame, 
                  correlated_features: pd.Series, 
-                 target_column: str,
+                 target_column: pd.Series,
                  graph_config: Graph_config,
                  ):
     selected_cols = correlated_features.index.tolist()
     corr_matrix = sample[selected_cols].corr()
-    corr_matrix = corr_matrix[correlated_features.index.tolist() + [target_column]].corr()
+    corr_matrix = corr_matrix[correlated_features.index.tolist() + target_column].corr()
     mask = None
     if graph_config.hide_halfh_graph:
         mask = np.triu(np.ones_like(corr_matrix, dtype=bool))

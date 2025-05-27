@@ -38,7 +38,7 @@ def main():
 
     explore_corr(sample,
                  correlated_features,
-                 target,
+                 cor_target,
                  graph_config)
 
     train(sample,
