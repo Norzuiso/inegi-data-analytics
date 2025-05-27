@@ -100,16 +100,20 @@ def binary_replace(data: pd.DataFrame, columns: list[Column]):
 
 def file_processing(preprocessing: PreprocessingConfig):
     file_path = preprocessing.input_file
-    columns = preprocessing.columns
-    columns.append(preprocessing.target_column)
     data = read_file(file_path)
-    if len(columns) == 0:
-        columns_name = data.columns.to_list()
-        for col in columns_name:
-            columns.append(Column(column_name=col))
-    validate_columns(data, columns)
-    data = clean_data_columns(data, columns)
-    data = binary_replace(data, columns)
+    if preprocessing.columns:
+        columns_cfg = preprocessing.columns
+    else:
+        columns_cfg = [
+            Column(column_name = col)
+            for col in data.columns.tolist()
+        ]
+    if preprocessing.target_column is not None and preprocessing.target_column.column_name not in data.columns:
+        columns_cfg.append(preprocessing.target_column)
+
+    validate_columns(data, columns_cfg)
+    data = clean_data_columns(data, columns_cfg)
+    data = binary_replace(data, columns_cfg)
     return data
 
 def rename_columns(data: pd.DataFrame, columns: list[Column], file_path: str):

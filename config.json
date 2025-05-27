@@ -18,22 +18,7 @@
       "false_value": "0",
       "value_type": "int"
     },
-      "columns": [
-        {
-          "column_name": "EDAD",
-          "condition": "x > 60",
-          "true_value": "1",
-          "false_value": "0",
-          "value_type": "int"
-        },
-        {
-          "column_name": "P3_11",
-          "condition": "x == 1",
-          "true_value": "1",
-          "false_value": "0",
-          "value_type": "int"
-        }
-      ]
+      "columns": []
     }
   ],
   "sample_config": {

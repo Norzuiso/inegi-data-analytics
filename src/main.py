@@ -1,11 +1,13 @@
 import logging
 import pandas as pd
-
+import numpy as np
 from typing import List
 
 from config import parameters
 from config_class import AnalysisConfig, GeneralConfig, PreprocessingConfig, SampleConfig, VisualizationConfig,ModelsConfig
 from data_utils import generate_sample, merge_files, file_processing
+from visualization import explore_corr
+from modeling import train
 
 # Configuración del logger
 log = logging.getLogger(__name__)
@@ -37,35 +39,32 @@ def main():
         data.to_csv(f"{general.results_directory}data.csv")
 
     
-    target = preprocessing.target_column
+    target = preprocessing.target_column.column_name
     columns = preprocessing.columns
     
-#    graph_config = config.graph_config
-#    model_config = config.model_config
-    
-    sample = generate_sample(data, target.column_name, sample_config)   
+
+    sample = generate_sample(data, target, sample_config)
     print(sample.describe())
     sample.to_csv(config.sample_config.output_sample_file, index=False)
-#    
-#    corr_matrix = sample.corr()
-#    cor_target = corr_matrix[target].abs()
-#    cor_target = cor_target.drop(target)
-#    correlated_features = cor_target[cor_target > sample_config.percentage_per_corr].sort_values(ascending=False)
-#    correlated_features.to_csv(config.corr_store_file)
-#
-#    explore_corr(sample,
-#                 correlated_features,
-#                 target,
-#                 graph_config)
-#
-#    train(sample,
-#          correlated_features,
-#          model_config,
-#          config,
-#          columns,
-#          target,
-#          sample_config.test_size,
-#          random_state=sample_config.random_state,)
+    sample = sample.select_dtypes(include=[np.number])
+    sample = sample.fillna(0)  # o usa un valor más sensato, según contexto
+    corr_matrix = sample.corr(method=sample_config.correlation_method)
+    cor_target = corr_matrix[target].abs()
+    cor_target = cor_target.drop(target)
+    correlated_features = cor_target[cor_target > sample_config.correlation_threshold].sort_values(ascending=False)
+    correlated_features.to_csv(general.results_directory + "correlated_features.csv")
+
+    explore_corr(sample,
+                 correlated_features,
+                 target,
+                 visualization)
+    train(sample,
+          correlated_features,
+          models,
+          columns,
+          preprocessing.target_column,
+          sample_config.test_size,
+          sample_config.random_seed,)
 
 if __name__ == "__main__":
     main()

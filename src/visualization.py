@@ -3,13 +3,13 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from config_class import GraphConfig
+from config_class import VisualizationConfig
 
 
 def explore_corr(sample: pd.DataFrame, 
                  correlated_features: pd.Series, 
                  target_column: str,
-                 graph_config: GraphConfig,
+                 visualization_config: VisualizationConfig,
                  ):
     selected_cols = correlated_features.index.tolist()
     corr_matrix = sample[selected_cols].corr()
@@ -17,20 +17,20 @@ def explore_corr(sample: pd.DataFrame,
         corr_matrix = corr_matrix.drop(target_column, axis=1)
     corr_matrix = corr_matrix[correlated_features.index.tolist()].corr()
     mask = None
-    if graph_config.hide_halfh_graph:
+    if visualization_config.hide_upper_half:
         mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
 
-    plt.figure(figsize=(graph_config.size_w, graph_config.size_h))
+    plt.figure(figsize=(visualization_config.width, visualization_config.height))
     sns.heatmap(corr_matrix, 
                 mask=mask,
-                fmt=graph_config.fmt,
-                cbar=graph_config.color_bar,
-                annot=graph_config.annot, 
-                cmap=graph_config.color_map)
-    plt.title(graph_config.graph_tittle)
+                fmt=visualization_config.number_format,
+                cbar=visualization_config.show_colorbar,
+                annot=visualization_config.show_annotations, 
+                cmap=visualization_config.color_map)
+    plt.title(visualization_config.title)
     plt.xticks(rotation=90, ha='right')
     plt.yticks(rotation=0)
     plt.tight_layout()
-    plt.savefig(graph_config.save_fig_path, format=graph_config.img_format)
-    if graph_config.show_plot: 
+    plt.savefig(visualization_config.figures_directory + visualization_config.figure_name + "." + visualization_config.image_format, format=visualization_config.image_format)
+    if visualization_config.display_plot: 
         plt.show()
