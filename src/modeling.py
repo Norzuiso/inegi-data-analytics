@@ -302,11 +302,12 @@ def explain_with_shap(modelo, X_train, X_test, results_path, model_name):
     # 2) Calcula los valores SHAP para el set de prueba
     shap_values = explainer(X_test)
 
-    shap_values.to_csv(out / f"{model_name}_shap_values.csv", index=False)
-
+    print(f"SHAP values calculated for {model_name} model.")
+    print(shap_values)
+    
     # 3) Genera y guarda el summary plot
     plt.figure()
     shap.summary_plot(shap_values, X_test, show=False)
     plt.tight_layout()
-    plt.savefig(out / f"{model_name}_shap_summary.png", dpi=150)
+    plt.savefig(out / f"{model_name}_shap_summary.svg", dpi=150)
     plt.close()
