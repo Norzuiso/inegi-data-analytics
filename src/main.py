@@ -8,6 +8,8 @@ from config_class import AnalysisConfig, GeneralConfig, PreprocessingConfig, Sam
 from data_utils import generate_sample, merge_files, file_processing
 from visualization import explore_corr
 from modeling import train
+from test import testing_code
+# -*- coding: utf-8 -*-
 
 # Configuración del logger
 log = logging.getLogger(__name__)
@@ -26,7 +28,12 @@ def main():
     models: ModelsConfig = config.models
     
     processing_mode = general.processing_mode
+    if processing_mode == "test":
+        log.info("Processing mode is set to 'test'.")
+        testing_code(config)
+        return
     data = pd.DataFrame
+    
     if processing_mode == "single":
         log.info("Only one preprocessing configuration provided. Using it for file processing.")
         preprocessing: PreprocessingConfig = preprocessing[0]

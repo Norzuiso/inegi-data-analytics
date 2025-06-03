@@ -82,10 +82,10 @@ def should_use_numexpr(column: Column):
         return False
     return True
 
-def binary_replace(data: pd.DataFrame, columns: list[Column]):
+def binary_replace_v1(data: pd.DataFrame, columns: list[Column]):
     for col in columns:
         name = col.column_name
-        condition = col.condition
+        condition: str = col.condition
         val_true = col.true_value
         val_false = col.false_value
         if condition is None or condition == "":
@@ -95,6 +95,26 @@ def binary_replace(data: pd.DataFrame, columns: list[Column]):
             data[name] = np.where(evaluated, val_true, val_false)
         else:
             serie_evaluada = data[name].apply(lambda x: eval(condition, {}, {"x": x}))
+            data[name] = np.where(serie_evaluada, val_true, val_false)
+   
+    return data
+
+def binary_replace(data: pd.DataFrame, columns: list[Column]):
+    for col in columns:
+        name = col.column_name
+        condition: str = col.condition
+        val_true = col.true_value
+        val_false = col.false_value
+        if not condition:
+            continue
+        # Aquí creas una función lambda a partir del string de condición
+        if should_use_numexpr(col):
+            x_np = pd.to_numeric(data[name], errors='coerce').to_numpy()
+            evaluated = ne.evaluate(condition, local_dict={"x": x_np})
+            data[name] = np.where(evaluated, val_true, val_false)
+        else:
+            func = eval(f"lambda x: {condition}")
+            serie_evaluada = data[name].apply(func)
             data[name] = np.where(serie_evaluada, val_true, val_false)
     return data
 
@@ -130,7 +150,7 @@ def get_base_file_name(file):
     return base_file_name
 
 def read_file(file_name: str):
-    data = pd.read_csv(file_name)
+    data = pd.read_csv(file_name, sep=';', index_col=False)
     data = pd.DataFrame(data)
     data = data.fillna(0)
     return data

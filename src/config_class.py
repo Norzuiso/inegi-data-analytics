@@ -17,6 +17,7 @@ class PreprocessingConfig(BaseModel):
     input_file: str = "data.csv"
     target_column: Optional[Column] = None
     columns: List[Column] = Field(default_factory=list)
+    remove_columns: List[str] = Field(default_factory=list)
 
     @model_validator(mode='before')
     def validate_conditions(cls, values):
@@ -199,7 +200,7 @@ class GeneralConfig(BaseModel):
     results_directory: str = "./results"
     correlation_results_file: str = "correlated_features.csv"
     report_title: str = "Modelo de predicción de hipertensión basado en ENSANUT"
-    processing_mode: Literal["merge", "single", "exploration"] = "single"
+    processing_mode: Literal["merge", "single", "exploration", "test"] = "single"
     verbose: bool = False  # Modo detallado
     config_version: str = "1.0.0"
 
