@@ -64,7 +64,7 @@ def validate_columns(data: pd.DataFrame, columns: list[Column]):
     available_cols = data.columns.tolist()
     missing_cols = [col for col in expected_cols if col not in available_cols]
     if missing_cols: # Si en segments existen columnas que no existan en archivo, arroja error :p
-        raise ValueError(f"Missing columns in the data: {', '.join(missing_cols)}")
+        raise ValueError(f"Missing columns in the data: {', '.join(missing_cols)}\n expected: {expected_cols}\n available: {available_cols}")
 
 def clean_data_columns(data: pd.DataFrame, columns: list[Column]):
     return data[[col.column_name for col in columns if col.column_name in data.columns]].copy()
@@ -75,6 +75,7 @@ def generate_condition_str(condition: str):
         for cond_split in close:
             cond_split 
     return True
+
 def should_use_numexpr(column: Column):
     if column.value_type == "str":
         return False
@@ -108,14 +109,9 @@ def binary_replace(data: pd.DataFrame, columns: list[Column]):
         if not condition:
             continue
         # Aquí creas una función lambda a partir del string de condición
-        if should_use_numexpr(col):
-            x_np = pd.to_numeric(data[name], errors='coerce').to_numpy()
-            evaluated = ne.evaluate(condition, local_dict={"x": x_np})
-            data[name] = np.where(evaluated, val_true, val_false)
-        else:
-            func = eval(f"lambda x: {condition}")
-            serie_evaluada = data[name].apply(func)
-            data[name] = np.where(serie_evaluada, val_true, val_false)
+        x_np = pd.to_numeric(data[name], errors='coerce').to_numpy()
+        evaluated = ne.evaluate(condition, local_dict={"x": x_np})
+        data[name] = np.where(evaluated, val_true, val_false)
     return data
 
 def file_processing(preprocessing: PreprocessingConfig):
@@ -128,10 +124,9 @@ def file_processing(preprocessing: PreprocessingConfig):
             Column(column_name = col)
             for col in data.columns.tolist()
         ]
-    if preprocessing.target_column is not None and preprocessing.target_column.column_name not in data.columns:
+    if preprocessing.target_column.column_name not in columns_cfg:
         columns_cfg.append(preprocessing.target_column)
-
-    validate_columns(data, columns_cfg)
+    #alidate_columns(data, columns_cfg)
     data = clean_data_columns(data, columns_cfg)
     data = binary_replace(data, columns_cfg)
     return data
@@ -150,7 +145,7 @@ def get_base_file_name(file):
     return base_file_name
 
 def read_file(file_name: str):
-    data = pd.read_csv(file_name, sep=';', index_col=False)
+    data = pd.read_csv(file_name, sep=',', index_col=False)
     data = pd.DataFrame(data)
     data = data.fillna(0)
     return data

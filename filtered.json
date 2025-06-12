@@ -1,0 +1,92 @@
+{
+  "general": {
+    "results_directory": "./results",
+    "correlation_results_file": "filtered_data.csv",
+    "report_title": "Modelo de predicción de hipertensión basado en ENSANUT",
+    "processing_mode": "test",
+    "verbose": false,
+    "config_version": "1.0.0"
+  },
+  "preprocessing": [
+    {
+      "input_file": "adultos_ensanut2023_w_n.csv",
+      "target_column": {
+        "column_name": "a0401",
+        "condition": "(x == 1) | (x == 2)",
+        "true_value": "1",
+        "false_value": "0",
+        "value_type": "int"
+      },
+      "columns":  [
+        {"column_name": "a0410b" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0410c" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0410d" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0410e" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0410f" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0502a" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0502c" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0502d" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0410a" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0404", "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0405aa", "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0405b" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0406"  , "condition":"", "true_value":"", "false_value":"","value_type":"int"},        
+        {"column_name": "A0408A" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "A0408B" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "A0408C" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "A0408D" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "A0408E" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0409"  , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0409a" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0405m" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0405a" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "edad"   , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "sexo"   , "condition":"", "true_value":"", "false_value":"","value_type":"int"}
+      ],
+      "remove_columns": []
+    }
+  ],
+  "sample_config": {
+    "sample_size": 3000,
+    "discriminator": 1,
+    "test_size": 0.2,
+    "correlation_threshold": 0,
+    "random_seed": 42,
+    "output_sample_file": "sample.csv",
+    "correlation_method": "pearson"
+  },
+  "visualization_config": {
+    "title": "Correlaciones",
+    "show_annotations": false,
+    "show_colorbar": true,
+    "color_map": "coolwarm",
+    "number_format": ".2f",
+    "hide_upper_half": true,
+    "figure_name": "default_graph",
+    "image_format": "svg",
+    "display_plot": false,
+    "width": 18,
+    "height": 12,
+    "figures_directory": "figures"
+  },
+  "models": {
+    "models_directory": "models",
+    "logistic_regression": {
+            "max_iter": 1000,
+            "solver": "saga",
+            "penalty": "l1",
+            "C": 0.8,
+            "class_weight": "balanced",
+            "multiclass": "auto",
+            "random_state": 7,
+            "intercept_scaling": 1,
+            "tol": 0.0001,
+            "fit_intercept": true,
+            "warm_start": false
+          },
+    "random_forest": {},
+    "svc": {},
+    "xgboost": {},
+    "ridge": {}
+  }
+}

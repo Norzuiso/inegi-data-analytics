@@ -11,7 +11,7 @@ class Column(BaseModel):
     condition: Optional[str] = ""
     true_value: Optional[str] = "1"
     false_value: Optional[str] = "0"
-    value_type: Literal["int", "str", "float"] = "int"
+    value_type: Optional[Literal["int", "str", "float"]] = "int"
 
 class PreprocessingConfig(BaseModel):
     input_file: str = "data.csv"
@@ -60,7 +60,7 @@ class LogisticRegressionConfig(BaseModel):
     intercept_scaling: int = 1
     max_iter: int = 1000
     multiclass: str = "auto"
-    penalty: Union[Literal['l1', 'l2', 'elasticnet', 'none'], None] = 'l2'
+    penalty: Union[Literal['l1', 'l2', 'elasticnet', 'None'], None] = 'l2'
     random_seed: Annotated[int, Field(strict=False, ge=0)] = 42
     solver: Literal['liblinear', 'newton-cg', 'lbfgs', 'sag', 'saga'] = 'lbfgs'
     tol: Annotated[float, Field(strict=False, gt=0)] = 1e-4
@@ -72,9 +72,9 @@ class LogisticRegressionConfig(BaseModel):
         penalty = values.get('penalty', 'l2')
         if solver == 'liblinear' and penalty not in ['l1', 'l2']:
             raise ValueError("Penalty must be one of ['l1', 'l2'] when solver is 'liblinear'")
-        if solver == 'saga' and penalty not in ['l1', 'l2', 'elasticnet', 'none']:
-            raise ValueError("Penalty must be one of ['l1', 'l2', 'elasticnet', 'none'] when solver is 'saga'")
-        if solver in ['lbfgs', 'newton-cg', 'sag'] and penalty not in ['l2', 'none']:
+        if solver == 'saga' and penalty not in ['l1', 'l2', 'elasticnet', 'None']:
+            raise ValueError("Penalty must be one of ['l1', 'l2', 'elasticnet', 'None'] when solver is 'saga'")
+        if solver in ['lbfgs', 'newton-cg', 'sag'] and penalty not in ['l2', 'None']:
             raise ValueError("Penalty must be one of ['l2', 'none'] when solver is 'lbfgs', 'newton-cg' or 'sag'")
         if solver == 'liblinear' and values.get('intercept_scaling', 1) != 1:
             raise ValueError("Intercept scaling must be 1 when solver is 'liblinear'")

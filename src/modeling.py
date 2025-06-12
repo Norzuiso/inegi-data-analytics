@@ -5,6 +5,7 @@ import joblib
 import pandas as pd
 import csv
 from xgboost import XGBClassifier
+import numpy as np
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -29,7 +30,7 @@ def train_logistic_regression(X_train, Y_train, X_test, Y_test, params: Logistic
         intercept_scaling=params.intercept_scaling,
         tol=params.tol,
         fit_intercept=params.fit_intercept,
-        warm_start=params.warm_start
+        warm_start=params.warm_start,
     )
 
     modelo.fit(X_train, Y_train)
@@ -42,20 +43,20 @@ def train_logistic_regression(X_train, Y_train, X_test, Y_test, params: Logistic
         writer.writerows(coef)
 
     acc = accuracy_score(Y_test, Y_pred)
-    f1 = f1_score(Y_test, Y_pred)
+    f1 = f1_score(Y_test, Y_pred, average='weighted')
     cl_report = classification_report(Y_test, Y_pred)
     conf_matrx = confusion_matrix(Y_test, Y_pred)
 
     joblib.dump(modelo, f"{results_path}LogisticRegression_{params.solver}_Penalty{params.penalty}_C{params.C}_MaxIter{params.max_iter}.pkl")
     results = {
         "Model": "LogisticRegression",
+        "modelo_cosita": modelo,
         "Accuracy": acc,
         "F1-Score": f1,
         "Classification Report": cl_report,
         "Confusion Matrix": conf_matrx
     }
-
-    return results
+    return modelo
 
 
 def train_random_forest(X_train, Y_train, X_test, Y_test, params: RandomForestConfig, results_path: str):
@@ -195,6 +196,61 @@ def train_ridge(X_train, Y_train, X_test, Y_test, params: RidgeConfig, results_p
     }
     return results
 
+def train_linear(sample: pd.DataFrame,
+          correlated_features: pd.Series,
+          models: ModelsConfig,
+          columns: list = [],
+          target: Column = Column(column_name="target"),
+          test_size: float = 0.2,
+          random_seed: int = 42):
+    logistic_regression_params = models.logistic_regression
+    
+    target_name = target.column_name
+    results_path = models.models_directory
+
+    # Ensure the directory exists
+    import os
+    os.makedirs(models.models_directory, exist_ok=True)
+
+    # DATASET
+    if not isinstance(correlated_features, pd.Series):
+        raise ValueError("correlated_features must be a pandas Series.")
+    if not hasattr(correlated_features.index, '__iter__'):
+        raise ValueError("correlated_features.index must be iterable.")
+
+    # Initialize results list
+    results = []
+   
+    features = [col for col in correlated_features.index if col != target_name]
+    if not features:
+        raise ValueError("No features found for training.")
+    X = sample[features]
+    Y = sample[target_name]
+    if target_name in X.columns:
+        raise ValueError("Target column was found in X — this will invalidate your training.")
+
+    # Split de los datos
+    X_train, X_test, Y_train, Y_test = train_test_split(
+        X, Y, test_size=test_size, stratify=Y, random_state=random_seed
+    )
+
+    # Normalización
+    scaler = StandardScaler()
+    X_train = scaler.fit_transform(X_train)
+    X_test = scaler.transform(X_test)
+
+    # Initialize results list
+    results = []
+
+    # Entrenamiento de los modelos
+    if logistic_regression_params is not None:
+            modelo = train_logistic_regression(X_train, Y_train, X_test, Y_test, logistic_regression_params, results_path)
+            
+            return modelo
+
+    else:
+        results.append({"Model": "LogisticRegression", "Error": "No configuration provided"})
+    
 
 def train(sample: pd.DataFrame,
           correlated_features: pd.Series,
@@ -247,12 +303,7 @@ def train(sample: pd.DataFrame,
     results = []
 
     # Entrenamiento de los modelos
-    if logistic_regression_params is not None:
-            logistic = train_logistic_regression(X_train, Y_train, X_test, Y_test, logistic_regression_params, results_path)
-            results.append(logistic)
-    else:
-        results.append({"Model": "LogisticRegression", "Error": "No configuration provided"})
-    
+
     if random_forest_params is not None:
         random_forest = train_random_forest(X_train, Y_train, X_test, Y_test, random_forest_params, results_path)
         results.append(random_forest)

@@ -38,9 +38,9 @@ def parameters():
     # Generar carpetas para guardar resultados
     if not config.general.results_directory:
         config.general.results_directory = "results"
-    config.general.results_directory = add_trailing_if_missing(config.general.results_directory)
+    config.general.results_directory = add_trailing_if_missing(f"{config.general.results_directory}/{config.preprocessing[0].target_column.column_name}")
     # Paths
-    default_save_path = create_timestamped_folders(config.general.results_directory)
+    default_save_path = f"{create_timestamped_folders(config.general.results_directory)}"
 
     config.models.models_directory = add_trailing_if_missing(config.models.models_directory)
     config.models.models_directory = f"{default_save_path}{config.models.models_directory}"

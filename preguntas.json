@@ -1,0 +1,34 @@
+{
+    "complicaciones": [
+        {"column_name": "a0410b" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0410c" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0410d" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0410e" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0410f" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0502a" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0502c" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0502d" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0410a" , "condition":"", "true_value":"", "false_value":"","value_type":"int"}
+    ],
+    "hábitos": [
+        {"column_name": "a0404", "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0405aa", "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0405b" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0406"  , "condition":"", "true_value":"", "false_value":"","value_type":"int"},        
+        {"column_name": "A0408A" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "A0408B" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "A0408C" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "A0408D" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "A0408E" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0409"  , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0409a" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0405m" , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "a0405a" , "condition":"", "true_value":"", "false_value":"","value_type":"int"}
+    ],
+    "datos": [
+        {"column_name": "edad"   , "condition":"", "true_value":"", "false_value":"","value_type":"int"},
+        {"column_name": "sexo"   , "condition":"", "true_value":"", "false_value":"","value_type":"int"}
+        
+    ]
+
+}
